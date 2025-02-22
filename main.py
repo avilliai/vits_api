@@ -120,8 +120,8 @@ def vG(text, out_path, speaker_id: int, modelSelect: list):
     # 复用已加载的模型
     net_g_ms, hps_ms = load_model(model_path, config_path)
 
-    length_scale, text = get_label_value(text, 'LENGTH', 1.16, 'length scale')
-    noise_scale, text = get_label_value(text, 'NOISE', 0.667, 'noise scale')
+    length_scale, text = get_label_value(text, 'LENGTH', data["tts_config"]["speed"], 'length scale')
+    noise_scale, text = get_label_value(text, 'NOISE', data["tts_config"]["noise"], 'noise scale')
     noise_scale_w, text = get_label_value(text, 'NOISEW', 0.7, 'deviation of noise')
     cleaned, text = get_label(text, 'CLEANED')
 
@@ -176,7 +176,7 @@ import os
 import uuid
 
 app = Flask(__name__)
-AUDIO_DIR = "output"  # 存放音频文件的目录
+
 @app.route("/get_speakers", methods=["GET"])
 def get_speakers():
     return jsonify(list(all_speakers.keys()))
@@ -191,16 +191,18 @@ def get_audio():
     if not text:
         return abort(400, "Missing text parameter")
 
-    os.makedirs(AUDIO_DIR, exist_ok=True)  # 确保输出目录存在
+    base_dir = os.getcwd()  # 获取当前工作目录
+    audio_dir = os.path.join(base_dir, "output")
+    os.makedirs(audio_dir, exist_ok=True)  # 确保输出目录存在
+
     filename = f"{uuid.uuid4()}.mp3"
-    file_path = os.path.join(AUDIO_DIR, filename)
+    file_path = os.path.join(audio_dir, filename)
 
     vG(text, file_path, int(speaker_index), model)  # 调用声码器生成音频文件
 
     return send_file(file_path, as_attachment=True, mimetype="audio/mpeg")
 
 
-os.makedirs(AUDIO_DIR, exist_ok=True)  # 确保输出目录存在
 app.run(host="0.0.0.0", port=data["server"]["port"], debug=True)
 
 

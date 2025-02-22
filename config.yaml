@@ -4,3 +4,6 @@ model:    #你填这个实际上没啥用
   config_path: "voiceModel/bolv/config.json"
 server:
   port: 5009
+tts_config:
+  speed: 1.1
+  noise: 0.667
