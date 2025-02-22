@@ -1,0 +1,6 @@
+speaker: "薄绿"
+model:    #你填这个实际上没啥用
+  model_path: "voiceModel/bolv/bolv.pth"
+  config_path: "voiceModel/bolv/config.json"
+server:
+  port: 5009
