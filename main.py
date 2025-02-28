@@ -139,6 +139,7 @@ def vG(text, out_path, speaker_id: int, modelSelect: list):
     write(out_path, hps_ms.data.sampling_rate, audio)  # 将生成的语音文件写入本地
     return out_path
 all_speakers={}
+speaker2cleaners={}
 def load_add_speakers():
     """
     加载所有speaker并制作索引
@@ -156,6 +157,7 @@ def load_add_speakers():
             index = 0
             for speaker in speakers:
                 all_speakers[speaker] = {"index": index, "model":[model_file, config_file]}
+                speaker2cleaners[speaker] = data["data"]["text_cleaners"][0]
                 index += 1
     return all_speakers
 load_add_speakers()
@@ -167,6 +169,7 @@ with open("config.yaml", "r", encoding="utf-8") as file:
     data = yaml.safe_load(file)  # 解析 YAML 数据
 
 print(f"当前可用speaker:{list(all_speakers.keys())}")
+#print(f"cleaner:{speaker2cleaners}")
 
 """
 flask_api，供给外部请求
@@ -187,9 +190,16 @@ def get_audio():
     speaker=request.args.get("speaker",data["speaker"])
     speaker_index=all_speakers[speaker]["index"]
     model=all_speakers[speaker]["model"]
-
+    print(f"请求文本:{text},speaker:{speaker},speaker_index:{speaker_index},model:{model}")
     if not text:
         return abort(400, "Missing text parameter")
+    """
+    文本处理
+    """
+
+    text= utils.process_text(text, speaker2cleaners[speaker], utils.mock_translate)
+    print(f"文本处理后:{text}")
+
 
     base_dir = os.getcwd()  # 获取当前工作目录
     audio_dir = os.path.join(base_dir, "output")
